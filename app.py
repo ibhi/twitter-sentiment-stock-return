@@ -66,21 +66,25 @@ client = RESTClient(secrets["polygonio_api_key"])
 
 @st.cache
 def get_stock_open_close(stock_name, date):
-    response_poly = client.get_daily_open_close_agg(stock_name,date.strftime('%Y-%m-%d'))
     stock_data = {
         "date":[],
         "open":[],
         "high":[],
         "low":[],
         "close":[],
-        "volume":[]
+        "volume":[],
+        "actual_sentiment": []
     }
-    stock_data["date"].append(datetime.datetime.fromisoformat(response_poly.from_).date())
-    stock_data["open"].append(response_poly.open)
-    stock_data["high"].append(response_poly.high)
-    stock_data["low"].append(response_poly.low)
-    stock_data["close"].append(response_poly.close)
-    stock_data["volume"].append(response_poly.volume)
+    dates = [date, date + datetime.timedelta(days=1), date + datetime.timedelta(days=2)]
+    for date in dates:
+        response_poly = client.get_daily_open_close_agg(stock_name,date.strftime('%Y-%m-%d'))
+        stock_data["date"].append(datetime.datetime.fromisoformat(response_poly.from_).date())
+        stock_data["open"].append(response_poly.open)
+        stock_data["high"].append(response_poly.high)
+        stock_data["low"].append(response_poly.low)
+        stock_data["close"].append(response_poly.close)
+        stock_data["volume"].append(response_poly.volume)
+        stock_data["actual_sentiment"].append('bullish' if((response_poly.open - response_poly.close) > 0) else 'bearish')
     df = pd.DataFrame(stock_data)
     return df
 
